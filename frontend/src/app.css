@@ -1,0 +1,109 @@
+/* ── KanBan design tokens: “paper workbench” ─────────────────────────────
+   Warm cream paper, ink text, one persimmon accent. All components pull
+   from these variables — change the board's whole mood here.            */
+
+:root {
+  --paper: #f3ede1;
+  --paper-deep: #eae2d0;
+  --surface: #fbf8f1;
+  --ink: #29231a;
+  --ink-soft: #75695a;
+  --ink-faint: #a3987f;
+  --line: #ddd3bd;
+  --accent: #c94f24;
+  --accent-deep: #a23c18;
+  --accent-wash: #f7e3d9;
+  --ok: #4e6e46;
+
+  --font-display: 'Fraunces', georgia, serif;
+  --font-body: 'Atkinson Hyperlegible', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow-card: 0 1px 2px rgba(41, 35, 26, 0.10), 0 2px 8px rgba(41, 35, 26, 0.06);
+  --shadow-lift: 0 4px 10px rgba(41, 35, 26, 0.14), 0 10px 28px rgba(41, 35, 26, 0.10);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Paper grain — a fixed, nearly-invisible noise layer that keeps flat areas
+   from feeling like plastic. Pure decoration; pointer-events off. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+#app {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 550;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+}
+
+input[type='text'],
+textarea {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 0.45rem 0.6rem;
+  outline: none;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+input[type='text']:focus,
+textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-wash);
+}
+
+::placeholder {
+  color: var(--ink-faint);
+}

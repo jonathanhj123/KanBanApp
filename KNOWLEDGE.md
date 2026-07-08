@@ -76,6 +76,26 @@ HTML5 DnD API, no library:
 - Tables created idempotently at startup with `CREATE TABLE IF NOT EXISTS`.
 - Neon is just hosted Postgres; the connection string lives in `backend/.env`, git-ignored.
 
+## 7. The Docker dev setup
+
+Both halves run in containers via `docker compose up --build`. The mental model:
+
+- **Images hold dependencies, bind mounts hold code.** The Dockerfiles copy
+  `requirements.txt` / `package.json` first and install — that's a cached layer, so `--build` on
+  every start is near-free unless dependencies actually changed. Source directories are
+  bind-mounted over the image's copy, so saves hit uvicorn `--reload` and Vite HMR directly:
+  code changes never need a rebuild.
+- **Networking changes inside, not outside.** The browser still sees `localhost:5173` and the
+  cookie story is untouched. But *between containers* "localhost" means "this container," so the
+  Vite proxy targets the backend by its compose service name (`http://backend:8001`), passed in
+  as `BACKEND_ORIGIN`.
+- **Two Windows-specific gotchas** handled in the config: bind mounts don't emit file-change
+  events (Vite falls back to polling when `BACKEND_ORIGIN` is set), and the image's Linux
+  `node_modules` must not be shadowed by the Windows one (an anonymous volume at
+  `/app/node_modules` protects it).
+- **Secrets stay out of images.** `.dockerignore` excludes `.env`; compose injects it at runtime
+  via `env_file`.
+
 ---
 
 ## Learning Log

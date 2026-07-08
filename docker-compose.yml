@@ -1,0 +1,36 @@
+# Start everything:   docker compose up --build
+#
+# --build re-checks both images on every start: if requirements.txt or
+# package.json changed, the affected image rebuilds (Docker's layer cache
+# makes an unchanged rebuild take ~a second). Code changes never need a
+# rebuild at all — both directories are bind-mounted into the containers,
+# and uvicorn --reload / Vite HMR react to saves live.
+#
+# The browser's world is unchanged: http://localhost:5173, cookie included.
+# What changes inside the network: the Vite proxy can't reach the backend at
+# "localhost" (that's the frontend container itself), so BACKEND_ORIGIN
+# points it at the backend service by name — see frontend/vite.config.js.
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8001:8001"
+    env_file:
+      - backend/.env
+    volumes:
+      - ./backend:/app
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - BACKEND_ORIGIN=http://backend:8001
+    volumes:
+      - ./frontend:/app
+      # Anonymous volume: keeps the image's node_modules (built for Linux)
+      # from being shadowed by your Windows one via the bind mount above.
+      - /app/node_modules
+    depends_on:
+      - backend

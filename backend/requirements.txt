@@ -1,0 +1,18 @@
+# Web framework + server
+fastapi
+uvicorn[standard]
+
+# The hand-rolled OAuth pieces
+httpx           # back-channel token exchange (we ARE the oauth library)
+PyJWT           # ID-token signature verification (the RSA math only)
+cryptography    # PyJWT's RSA backend
+itsdangerous    # required by Starlette's SessionMiddleware (cookie signing)
+
+# Database
+psycopg2-binary
+
+# Config
+pydantic-settings
+
+# Tests
+pytest

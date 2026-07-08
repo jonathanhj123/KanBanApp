@@ -28,6 +28,12 @@ pydantic-settings, pytest · Svelte 5 (runes), Vite · Neon PostgreSQL.
 - Card/column ids: Python-generated UUID strings (TEXT in the DB).
 - Commit at the end of every task, and after any green test run worth keeping.
 
+> **Scaffolding note (2026-07-08):** the full file structure already exists — every function below
+> is stubbed with its contract and a `TODO(Task N)` marker, and all HTML/CSS is pre-built (off
+> curriculum by agreement, see CLAUDE.md). "Create:" in a task therefore means "fill in the stub."
+> The project also runs under Docker now: `docker compose up --build` replaces the bare
+> uvicorn/npm commands in the steps below — full run instructions live in PROGRESS.md.
+
 ## How to work each task (the learning loop)
 
 1. Read the task's **Why** and **Thought process** with Claude — ask until it makes sense.
