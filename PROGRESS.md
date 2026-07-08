@@ -41,15 +41,22 @@ markup and styles with stubbed logic; the frontend builds clean.
 | `frontend/src/lib/Board.svelte` (function bodies) | 9, 10 |
 | `frontend/src/lib/Column.svelte`, `Card.svelte` (drag handlers) | 10 |
 
-### Implementation — NOT STARTED (Task 1 is next)
+### Implementation — Task 1 DONE (2026-07-08); Task 2 is next
+
+Task 1 (backend skeleton + config): `config.py` (pydantic-settings, six validated fields) and
+`main.py` (FastAPI app, SessionMiddleware, `GET /api/health` → 200) implemented by the human and
+verified live in Docker. Lessons captured in `KNOWLEDGE.md` Learning Log (env-var precedence,
+compose env snapshots, `.gitignore` vs already-tracked files).
 
 ## Setup Checklist (before Task 1)
 
 - [ ] Google Cloud console: add `http://localhost:5173/auth/callback` as an authorized redirect
       URI (the GoogleOAuthProject client can be reused). For Task 4.4's backend-only test you'll
       temporarily also want `http://localhost:8001/auth/callback`.
-- [ ] Neon: create a dev database AND a test database; grab both connection strings
-- [ ] `backend/.env` from `backend/.env.example` — all six values
+- [ ] Neon: create a test database (dev database `kanban` exists; `TEST_DATABASE_URL` is still a
+      placeholder — needed by Task 5)
+- [x] `backend/.env` from `backend/.env.example` — `DATABASE_URL` (→ `kanban` DB, verified),
+      `SESSION_SECRET` (real), `REDIRECT_URI` set; Google creds still placeholders (needed Task 3)
 
 ## How to Run — Docker (the default)
 

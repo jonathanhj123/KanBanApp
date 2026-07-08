@@ -102,4 +102,20 @@ Both halves run in containers via `docker compose up --build`. The mental model:
 
 New entries go here as we build, dated, newest first.
 
+- **2026-07-08** — Task 1 done. Lessons collected along the way:
+  - **pydantic-settings validation errors name the *field*** (`session_secret`), not the env var
+    (`SESSION_SECRET`) — it validates the model, and the env var is just one possible source.
+  - **Real environment variables beat the `.env` file** in pydantic-settings precedence. In Docker
+    this matters doubly: compose's `env_file:` injects values into the container environment
+    *at container creation*, so editing `.env` changes nothing until `docker compose up -d`
+    recreates the container (`restart` reuses the old snapshot).
+  - **`DATABASE_URL` as one string vs discrete `PG*` parts**: providers hand out URLs, Python
+    libraries consume URLs (twelve-factor convention); parts are how some deployments *store*
+    config, but the URL is how the app *expresses* the connection. Watch percent-encoding if the
+    password contains `@ / :`.
+  - **`.gitignore` only filters untracked files.** Files committed before the rule existed must be
+    evicted with `git rm -r --cached` (leaves them on disk). And `git check-ignore` needs
+    `--no-index` to test a rule against an already-tracked file.
+  - **Frontend never talks to Postgres** — the Node `pg` driver has no business in
+    `frontend/package.json`; all DB access goes through the Python backend.
 - **2026-07-08** — Project started. Design at `docs/superpowers/specs/2026-07-08-kanban-app-design.md`.
