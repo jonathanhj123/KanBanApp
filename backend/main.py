@@ -10,7 +10,15 @@ What lives here (and only this — keep it thin, like GoogleOAuthProject's main.
 Run with:  python -m uvicorn main:app --reload --port 8001
 """
 
-# TODO(Task 1.4): app + SessionMiddleware + /api/health
+from fastapi import FastAPI
+from starlette.middleware.sessions import SessionMiddleware
+from config import settings
+app = FastAPI()
+app.add_middleware(SessionMiddleware, secret_key=settings.session_secret)
+@app.get("/api/health")
+def health_check():
+    return {"status": "ok"}
+
 # TODO(Task 2.3): lifespan -> db.create_tables()
 # TODO(Task 4.2): app.include_router(auth.router)
 # TODO(Task 6.2): app.include_router(api.router)
