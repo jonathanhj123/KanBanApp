@@ -13,12 +13,22 @@ Run with:  python -m uvicorn main:app --reload --port 8001
 from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
 from config import settings
-app = FastAPI()
+from contextlib import asynccontextmanager
+import db
+
+@asynccontextmanager
+async def lifespan(app):
+    db.create_tables()
+    yield
+
+app = FastAPI(lifespan=lifespan)
 app.add_middleware(SessionMiddleware, secret_key=settings.session_secret)
 @app.get("/api/health")
 def health_check():
     return {"status": "ok"}
 
-# TODO(Task 2.3): lifespan -> db.create_tables()
+
+    
+
 # TODO(Task 4.2): app.include_router(auth.router)
 # TODO(Task 6.2): app.include_router(api.router)

@@ -41,12 +41,17 @@ markup and styles with stubbed logic; the frontend builds clean.
 | `frontend/src/lib/Board.svelte` (function bodies) | 9, 10 |
 | `frontend/src/lib/Column.svelte`, `Card.svelte` (drag handlers) | 10 |
 
-### Implementation — Task 1 DONE (2026-07-08); Task 2 is next
+### Implementation — Tasks 1–2 DONE; Task 3 (OAuth port) is next
 
-Task 1 (backend skeleton + config): `config.py` (pydantic-settings, six validated fields) and
-`main.py` (FastAPI app, SessionMiddleware, `GET /api/health` → 200) implemented by the human and
-verified live in Docker. Lessons captured in `KNOWLEDGE.md` Learning Log (env-var precedence,
-compose env snapshots, `.gitignore` vs already-tracked files).
+Task 1 (backend skeleton + config, 2026-07-08): `config.py` (pydantic-settings, six validated
+fields) and `main.py` (FastAPI app, SessionMiddleware, `GET /api/health` → 200) implemented by the
+human and verified live in Docker. Lessons captured in `KNOWLEDGE.md` Learning Log (env-var
+precedence, compose env snapshots, `.gitignore` vs already-tracked files).
+
+Task 2 (db connection + schema, 2026-07-12): `db.get_connection()` / `db.create_tables()` and the
+lifespan hook in `main.py` implemented by the human; verified against Neon (three tables present,
+clean restart proves idempotency). Lessons in `KNOWLEDGE.md` Learning Log (cursor vs connection
+API, commit ownership, lifespan mechanics).
 
 ## Setup Checklist (before Task 1)
 

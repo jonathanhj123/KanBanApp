@@ -102,6 +102,26 @@ Both halves run in containers via `docker compose up --build`. The mental model:
 
 New entries go here as we build, dated, newest first.
 
+- **2026-07-12** — Task 2 done (db connection + schema + lifespan). Lessons from the review cycle:
+  - **psycopg2's API split: statements go through the cursor, the transaction lives on the
+    connection.** `.execute()` exists only on cursors (calling it on the connection is psycopg3's
+    API — easy to mix up with tutorials); `.commit()` exists only on connections. Chain:
+    `connect → cursor → execute → connection.commit() → connection.close()`. Close matters on
+    Neon — hosted Postgres caps concurrent connections.
+  - **"Copy the schema, don't retype it" proved itself immediately**: a hand-typed `INTEGRE`
+    was caught in review. Postgres would have rejected that one loudly, but subtler drift
+    (nullability, defaults) creates silently-diverged tables.
+  - **`@asynccontextmanager` lifespan = setup/teardown bracket around the whole app.** Before
+    `yield` runs once pre-first-request (that's where `create_tables()` goes); after `yield` is
+    the shutdown slot. The function is a *description* handed to `FastAPI(lifespan=...)` at
+    construction — forget the argument and startup code silently never runs.
+  - **Module-level calls execute at import, top to bottom.** `FastAPI(lifespan=lifespan)` needs
+    `lifespan` already defined above it; a function *body* referencing later names is fine
+    (bodies don't run at definition time). Same class of error as the stray
+    `raise NotImplementedError` left after real code — dead lines still execute in sequence.
+  - **Editor feedback tiers:** red = won't run, yellow = suspicious, gray = style/dead-code hints.
+    Pylance's "not accessed" on a fresh import is tier three — it just means the using code
+    isn't written yet.
 - **2026-07-08** — Task 1 done. Lessons collected along the way:
   - **pydantic-settings validation errors name the *field*** (`session_secret`), not the env var
     (`SESSION_SECRET`) — it validates the model, and the env var is just one possible source.

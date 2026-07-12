@@ -7,22 +7,51 @@ Rules that apply to every function in this file (see plan: Global Constraints):
   - "exists but isn't yours" must be indistinguishable from "doesn't exist":
     return None/False and let the route turn that into a 404
 """
+from config import settings
+import psycopg2
+
 
 # ── Task 2: connection + schema ────────────────────────────────────────────
 
 
 def get_connection():
     """Return a new psycopg2 connection using settings.database_url."""
-    raise NotImplementedError  # TODO(Task 2.2)
+    return psycopg2.connect(settings.database_url)
 
 
 def create_tables():
     """Create users / columns / cards if they don't exist (idempotent).
-
+    
     Copy the schema from the spec (docs/superpowers/specs/...), don't retype
     from memory — schema drift between doc and DB is a classic bug class.
     """
-    raise NotImplementedError  # TODO(Task 2.2)
+    connection = get_connection()
+    cur = connection.cursor()
+
+    cur.execute(
+    "CREATE TABLE IF NOT EXISTS users (" \
+    "id TEXT PRIMARY KEY," \
+    "email TEXT NOT NULL," \
+    "name TEXT," \
+    "picture TEXT);")
+    
+    cur.execute(
+    "CREATE TABLE IF NOT EXISTS columns (" \
+    "id TEXT PRIMARY KEY," \
+    "user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE," \
+    "title TEXT NOT NULL," \
+    "position INTEGER NOT NULL);")
+
+    cur.execute(\
+    "CREATE TABLE IF NOT EXISTS cards (" \
+    "id TEXT PRIMARY KEY," \
+    "column_id TEXT NOT NULL REFERENCES columns(id) ON DELETE CASCADE," \
+    "text TEXT NOT NULL," \
+    "position INTEGER NOT NULL);")
+
+    connection.commit()
+    connection.close()
+
 
 
 # ── Task 4: users ───────────────────────────────────────────────────────────
