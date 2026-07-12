@@ -5,7 +5,9 @@
 A Trello-style kanban board behind "Sign in with Google" — the combination of two earlier learning
 projects:
 
-- **GoogleOAuthProject** → the hand-rolled OAuth 2.0 / OIDC auth layer
+- **GoogleOAuthProject** → the hand-rolled OAuth 2.0 / OIDC auth layer. *Docs only* — that
+  project never got past its knowledge base and design doc, so KanBanApp's Task 3 is the first
+  actual implementation of the flow, built from `../GoogleOAuthProject/KNOWLEDGE.md`.
 - **ToDoListApp** → the FastAPI + Svelte 5 app skeleton, plus its never-done Neon PostgreSQL migration
 
 Design doc: `docs/superpowers/specs/2026-07-08-kanban-app-design.md`
@@ -41,7 +43,21 @@ markup and styles with stubbed logic; the frontend builds clean.
 | `frontend/src/lib/Board.svelte` (function bodies) | 9, 10 |
 | `frontend/src/lib/Column.svelte`, `Card.svelte` (drag handlers) | 10 |
 
-### Implementation — Tasks 1–2 DONE; Task 3 (OAuth port) is next
+### Implementation — Tasks 1–2 DONE; Task 3 (OAuth build) IN PROGRESS
+
+Task 3 status (2026-07-12): step 3.1 (the theory gate) **passed** — state/CSRF, PKCE, and the
+four ID-token checks discussed and quizzed until solid; lessons in `KNOWLEDGE.md` Learning Log.
+Note the plan correction: GoogleOAuthProject turned out to be docs-only (no code ever existed),
+so Task 3 is a **first build from `../GoogleOAuthProject/KNOWLEDGE.md`**, not a port — the plan
+file's Task 3 section was rewritten accordingly.
+
+**Where we left off / next actions:**
+1. Write `make_state()` in `backend/oauth.py` — one-liner via the `secrets` module
+   (homework question pending: why `secrets` and not `random`?).
+2. Then `make_pkce_pair()` (secrets + sha256 + base64url), `build_auth_url()`, `exchange_code()`,
+   then `tokens.py::verify_id_token` (PyJWT + PyJWKClient).
+3. Step 3.3 still pending: add `http://localhost:5173/auth/callback` in the Google console.
+4. Update the stale "port" header docstrings in `oauth.py` / `tokens.py` while in there.
 
 Task 1 (backend skeleton + config, 2026-07-08): `config.py` (pydantic-settings, six validated
 fields) and `main.py` (FastAPI app, SessionMiddleware, `GET /api/health` → 200) implemented by the

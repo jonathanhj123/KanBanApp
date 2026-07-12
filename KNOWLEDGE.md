@@ -10,7 +10,7 @@ Log** at the bottom (and get folded into the relevant section if they correct or
 
 | From | What we take | Where the detail lives |
 |------|--------------|------------------------|
-| **GoogleOAuthProject** | The full hand-rolled OIDC flow: `state`, PKCE, back-channel exchange, JWKS verification | `../GoogleOAuthProject/KNOWLEDGE.md` — the definitive reference |
+| **GoogleOAuthProject** | The full hand-rolled OIDC flow: `state`, PKCE, back-channel exchange, JWKS verification — *knowledge only; that project never had code, so Task 3 here is the flow's first implementation* | `../GoogleOAuthProject/KNOWLEDGE.md` — the definitive reference |
 | **ToDoListApp** | FastAPI + Svelte 5 two-process shape, Vite dev server, runes-based components | `../ToDoListApp/PROGRESS.md` |
 | **ToDoListApp (unfinished)** | The Neon PostgreSQL migration lesson: psycopg2, cursors, SQL, `.env` secrets | `../ToDoListApp/docs/superpowers/specs/2026-05-24-neon-database-migration-design.md` |
 
@@ -102,6 +102,33 @@ Both halves run in containers via `docker compose up --build`. The mental model:
 
 New entries go here as we build, dated, newest first.
 
+- **2026-07-12** — Task 3 theory gate passed (state / PKCE / ID-token checks). The formulations
+  that finally stuck, kept here for re-reading before Task 4:
+  - **Front vs back channel decides where code runs.** `exchange_code` can never run in the
+    browser for one specific reason: its POST body carries the `client_secret`, and anything a
+    browser sends is readable in the Network tab. Vague answers ("it'd be insecure") are
+    non-answers — name the value that leaks and the channel it leaks through.
+  - **`state` ties the *completion* of a login to the browser that *initiated* it.** The login-CSRF
+    attack: the attacker initiates a login (their session holds the state) but tricks the
+    *victim's* browser into delivering the callback — and the victim's session holds no matching
+    state → reject. Sessions are per-browser; that's why the comparison works. Without it the
+    victim gets silently logged in *as the attacker*, and everything they save lands in the
+    attacker's account.
+  - **PKCE binds the auth code to the login attempt that started it.** Verifier stays secret in
+    the session; only its SHA-256 goes up front. A stolen code fails at exchange without the
+    verifier. We use it despite having a client secret: defense in depth + OAuth 2.1 makes it
+    mandatory. Always `S256`.
+  - **The four ID-token checks, one line each:** signature → nobody fabricated/tampered (any
+    edited claim breaks it); `iss` → minted by Google, not another authority (it's a claim in the
+    payload, NOT about redirect URLs); `aud` → minted *for us* (blocks FreeSudoku replaying your
+    genuine Google token at our app — the token-substitution classic where the other three checks
+    all pass); `exp` → minted recently, not replayed. Mail analogy: real letterhead / really sent
+    by Google / addressed to us / postmarked today.
+  - **Two misconceptions worth remembering because they felt plausible:** "user pressed cancel" is
+    the *no-token* error path (Task 4's `?error=...`), not a signature failure; and `iss` was
+    initially confused with redirect origins — it's about who *minted* the token.
+  - **Hand-roll the flow, never the crypto:** PyJWT does signature+`iss`+`aud`+`exp` in one
+    audited call. Knowing where that line sits is itself the lesson.
 - **2026-07-12** — Task 2 done (db connection + schema + lifespan). Lessons from the review cycle:
   - **psycopg2's API split: statements go through the cursor, the transaction lives on the
     connection.** `.execute()` exists only on cursors (calling it on the connection is psycopg3's

@@ -108,33 +108,46 @@ when something goes wrong it can only be connection-or-SQL, not app logic.
 
 ---
 
-### Task 3: Port the OAuth modules
+### Task 3: Build the OAuth modules
+
+> **Plan correction (2026-07-12):** this task was written as a *port* from
+> `../GoogleOAuthProject/app/`, but that project only ever contained docs — the code was never
+> written (confirmed: its git history holds a single docs-only commit). Task 3 is therefore a
+> **first build from the knowledge base**: `../GoogleOAuthProject/KNOWLEDGE.md` (§3 flow, §5
+> security, §6 endpoints) and `../GoogleOAuthProject/docs/design.md` are the sources. The
+> interfaces below are unchanged — Task 4 still calls exactly these functions.
 
 **Files:**
-- Create: `backend/oauth.py`, `backend/tokens.py` (ported from `../GoogleOAuthProject/app/`)
+- Create: `backend/oauth.py`, `backend/tokens.py` (built from `../GoogleOAuthProject/KNOWLEDGE.md`)
 
 **Interfaces:**
 - Produces: `oauth.make_state() -> str`, `oauth.make_pkce_pair() -> tuple[str, str]` (verifier, challenge), `oauth.build_auth_url(state: str, code_challenge: str) -> str`, `oauth.exchange_code(code: str, code_verifier: str) -> dict` (the token response).
 - Produces: `tokens.verify_id_token(id_token: str) -> dict` (verified claims; raises on any failed check).
 - (If the originals use different names, keep the originals' names and update this block — the point is that Task 4 must call exactly what exists.)
 
-**Why this task:** This is the "combine the two projects" moment. It's a *port*, not a rewrite — but
-per the learning goal, the port is done by re-reading, not blind copy-paste.
+**Why this task:** This is the "combine the two projects" moment — and since the OAuth demo was
+never actually coded, this is where that curriculum gets *implemented* for the first time, inside
+the app that needs it. The knowledge base did the design thinking; this task turns it into code.
 
 **Thought process to discuss:**
 - Re-walk the flow using `../GoogleOAuthProject/KNOWLEDGE.md` §3 and §5: what attack does `state`
   stop, what attack does PKCE stop, what do the four ID-token checks (signature/`iss`/`aud`/`exp`)
-  each block? You should be able to answer all four *before* porting.
-- What actually changes in the port: config import paths, and `redirect_uri` now comes from
-  settings (`:5173`, not `:8000`). Everything protocol-level stays identical.
+  each block? You should be able to answer all four *before* writing any code.
+- Front channel vs back channel (KNOWLEDGE.md §3's closing mental model): which of the four
+  functions live on which channel, and why `exchange_code` must be server-side.
+- The toolbox per function: `secrets` for randomness, `hashlib` + `base64` (urlsafe, no padding)
+  for PKCE, `urllib.parse.urlencode` for the auth URL, `httpx` for the token POST, `PyJWT` +
+  `PyJWKClient` for JWKS signature verification with `iss`/`aud`/`exp` options.
+- `redirect_uri` comes from `settings.redirect_uri` (`:5173` via the Vite proxy) — endpoint URLs
+  from KNOWLEDGE.md §6.
 
 **Steps:**
 
-- [ ] **3.1** Read both source files in GoogleOAuthProject end-to-end; for each function, say out loud (to Claude) what it does and why it exists. Claude checks understanding, not vibes.
-- [ ] **3.2** Port `oauth.py`, adjusting only config wiring. Same for `tokens.py`.
+- [ ] **3.1** Read `../GoogleOAuthProject/KNOWLEDGE.md` §3, §5, §6 end-to-end; answer the security questions above out loud (to Claude). Claude checks understanding, not vibes.
+- [ ] **3.2** Build `oauth.py` (four functions, front-channel helpers + back-channel exchange), then `tokens.py` (`verify_id_token`). One function at a time: discuss shape → write → review.
 - [ ] **3.3** Google Cloud console: add `http://localhost:5173/auth/callback` as an authorized redirect URI on the existing OAuth client.
-- [ ] **3.4** Verify (import-level only for now): `python -c "import oauth, tokens"` from `backend/` with the venv active — no import errors; full-flow verification happens in Task 4/7.
-- [ ] **3.5** Commit: `feat: port hand-rolled oauth + id-token verification from GoogleOAuthProject`
+- [ ] **3.4** Verify (import-level only for now): `python -c "import oauth, tokens"` from `backend/` with the venv active — no import errors; full-flow verification happens in Task 4/7. The pure helpers (`make_state`, `make_pkce_pair`, `build_auth_url`) can be smoke-tested in a REPL.
+- [ ] **3.5** Commit: `feat: hand-rolled oauth + id-token verification (built from the OAuth knowledge base)`
 
 ---
 
